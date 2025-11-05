@@ -4,7 +4,7 @@
 
 export class WASIXProcess {
     constructor(module, memory) {
-        const { instance } = WebAssembly.instantiate(
+        WebAssembly.instantiate(
             module,
             {
                 // TODO: use worker postMessage to handle syscalls
@@ -198,11 +198,9 @@ export class WASIXProcess {
                     memory: memory,
                 }
             }
-        );
-        this.instance = instance;
-    }
-
-    start() {
-        this.instance.exports._start();
+        ).then((result) => {
+            this.instance = result;
+            this.instance.exports._start();
+        });
     }
 }
