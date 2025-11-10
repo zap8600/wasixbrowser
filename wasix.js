@@ -12,10 +12,13 @@ export class WASIXProcess {
                     args_get(argv, argv_buf) {
                         // throw new Error("args_get"); // TODO
                         postMessage(["args_get", argv, argv_buf]);
+                        return 0;
                     },
 
                     args_sizes_get(argc, argv_buf_size) {
-                        throw new Error("args_sizes_get"); // TODO
+                        // throw new Error("args_sizes_get"); // TODO
+                        postMessage(["args_sizes_get", argc, argv_buf_size]);
+                        return 0;
                     },
 
                     environ_get(env, env_buf) {
@@ -121,6 +124,7 @@ export class WASIXProcess {
                     fd_write(fd, iovs_ptr, iovs_len, nwritten) {
                         // throw new Error("fd_write");
                         postMessage(["fd_write", fd, iovs_ptr, iovs_len, nwritten]);
+                        return 0;
                     },
 
                     path_create_directory() {
