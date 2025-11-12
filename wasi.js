@@ -79,10 +79,10 @@ export class WASI {
     }
 
     clock_time_get(clock_id, precision, time) {
-        // const data_view = new DataView(instance.exports.memory.buffer);
-        // data_view.setBigUint64(time, BigInt(Date.now() * 1000000), true);
-        // return 0;
-        throw new Error("clock_time_get");
+        // throw new Error("clock_time_get");
+        const data_view = new DataView(this.memory.buffer);
+        data_view.setBigUint64(time, BigInt(Date.now() * 1000000), true);
+        return 0;
     }
 
     fd_advise() {

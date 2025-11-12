@@ -1,6 +1,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <pthread.h>
+#include <stdlib.h>
 // #include <errno.h>
 
 char* hex_str(unsigned int num) {
@@ -28,23 +29,34 @@ int counter = 0;
 
 void* thread(void* ptr) {
     print_str("thread!\n");
+    char* msg = (char*)calloc(1, 11 + 10);
+    if(*((int*)ptr) == 1) {
+        memcpy(msg, "thread 1: ", 10);
+    } else {
+        memcpy(msg, "thread 2: ", 10);
+    }
     for(int i = 0; i < 100; i++) {
         pthread_mutex_lock(&the_mutex);
         counter++;
-        print_str(hex_str(counter));
+        memcpy(msg + 10, hex_str(counter), 11);
+        print_str(msg);
         pthread_mutex_unlock(&the_mutex);
     }
+    free(msg);
 }
+
+int thread_id_wan = 1;
+int thread_id_tu = 2;
 
 int main() {
     pthread_t the_thread;
     pthread_t the_thread_again;
-    int create_return = pthread_create(&the_thread, NULL, thread, NULL);
+    int create_return = pthread_create(&the_thread, NULL, thread, (void*)&thread_id_wan);
     if(create_return) {
         print_err("failed to create thread 1!\n");
         return create_return;
     }
-    create_return = pthread_create(&the_thread_again, NULL, thread, NULL);
+    create_return = pthread_create(&the_thread_again, NULL, thread, (void*)&thread_id_tu);
     if(create_return) {
         print_err("failed to create thread 2!\n");
         return create_return;

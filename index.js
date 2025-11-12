@@ -1,5 +1,3 @@
-import { WASI } from "./wasi.js";
-
 (async function () {
     const module = await WebAssembly.compileStreaming(fetch("./wasitests/thread.wasm"));
     const memory = new WebAssembly.Memory({ initial: 2, maximum: 1024, shared: true })
@@ -33,11 +31,17 @@ import { WASI } from "./wasi.js";
                         }
                     }
                 }
+                worker.onerror = (f) => {
+                    throw f;
+                }
                 worker.postMessage([module, memory, e.data[0], e.data[1]]);
                 workers.push(worker);
                 break;
             }
         }
+    }
+    main_worker.onerror = (d) => {
+        throw d;
     }
     main_worker.postMessage([module, memory]);
 

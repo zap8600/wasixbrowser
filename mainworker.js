@@ -1,5 +1,7 @@
 import { WASI } from "./wasi.js";
 
+let thread_id = 5;
+
 onmessage = (e) => {
     const wasi = new WASI(e.data[1]);
     WebAssembly.instantiate(e.data[0], {
@@ -7,9 +9,10 @@ onmessage = (e) => {
         "wasi": {
             "thread-spawn"(start_args) {
                 // throw new Error("thread-spawn");
-                const thread_id = 5;
                 postMessage([thread_id, start_args, "thread"]);
-                return thread_id;
+                const return_value = thread_id;
+                thread_id++;
+                return return_value;
             }
         },
         env: { memory: e.data[1] }
