@@ -3,7 +3,10 @@
 // https://web.dev/articles/asyncify
 
 export class WASI {
-    constructor() {
+    memory;
+
+    constructor(memory) {
+        this.memory = memory;
         this.bind();
     }
 
@@ -164,7 +167,32 @@ export class WASI {
     }
 
     fd_write(fd, iovs_ptr, iovs_len, nwritten) {
-        throw new Error("fd_write");
+        // throw new Error("fd_write");
+        const iovs = new Uint32Array(this.memory.buffer, iovs_ptr, iovs_len * 2);
+        if(fd === 1 || fd === 2) {
+            let text = "";
+            let total = 0;
+            const decoder = new TextDecoder();
+            for(let i = 0; i < iovs_len * 2; i += 2) {
+                const offset = iovs[i];
+                const length = iovs[i + 1];
+                const chunk_copy = new ArrayBuffer(length);
+                new Uint8Array(chunk_copy).set(new Uint8Array(this.memory.buffer, offset, length));
+                const text_chunk = decoder.decode(new Int8Array(chunk_copy));
+                text += text_chunk;
+                total += length;
+            }
+            const data_view = new DataView(this.memory.buffer);
+            data_view.setInt32(nwritten, total, true);
+            if(fd === 1) {
+                // console.log(text);
+                postMessage([text, 0, "log"]);
+            } else {
+                // console.error(text);
+                postMessage([text, 0, "error"]);
+            }
+            return 0;
+        }
     }
 
     path_create_directory() {
@@ -212,7 +240,13 @@ export class WASI {
     }
 
     proc_exit(code) {
-        throw new Error("proc_exit");
+        if(code === 0) {
+            // console.log("Process exited with error code " + code + "!");
+            postMessage(["Process exited with error code " + code + "!", 0, "log"]);
+        } else {
+            // console.error("Process exited with error code " + code + "!");
+            postMessage(["Process exited with error code " + code + "!", 0, "error"]);
+        }
     }
 
     proc_raise() {
