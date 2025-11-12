@@ -2,9 +2,7 @@
     const encoder = new TextEncoder();
 
     const args_array = [
-        "./wasitests/args.wasm",
-        "--sandwich",
-        "chicken"
+        "./wasitests/printf.wasm",
     ];
 
     const module = await WebAssembly.compileStreaming(fetch(args_array[0]));
@@ -40,6 +38,7 @@
                     }
                 }
                 worker.onerror = (f) => {
+                    console.error(f.message);
                     throw f;
                 }
                 worker.postMessage([module, memory, e.data[0], e.data[1], args_array]);
@@ -49,6 +48,7 @@
         }
     }
     main_worker.onerror = (d) => {
+        console.error(d.message);
         throw d;
     }
     main_worker.postMessage([module, memory, args_array]);
