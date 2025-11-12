@@ -9,8 +9,7 @@ export class WASI {
     constructor(memory, args) {
         const encoder = new TextEncoder();
         this.memory = memory;
-        this.args = args.map(s => { encoder.encode(s + "\0"); });
-        postMessage([this.args, 0, "log"]);
+        this.args = args.map(s => encoder.encode(s + "\0"));
         this.bind();
     }
 
@@ -63,7 +62,7 @@ export class WASI {
     }
 
     args_get(argv_ptr, argv_buf_ptr) {
-        const length = this.args.reduce((sum, value) => { sum + value.byteLength }, 0);
+        const length = this.args.reduce((sum, value) => sum + value.byteLength, 0);
         const argv = new Uint32Array(this.memory.buffer, argv_ptr, this.args.length);
         const argv_buf = new Uint8Array(this.memory.buffer, argv_buf_ptr, length);
 
@@ -80,7 +79,7 @@ export class WASI {
 
     args_sizes_get(argc_ptr, argv_buf_size_ptr) {
         // throw new Error("args_sizes_get");
-        const length = this.args.reduce((sum, value) => { sum + value.byteLength }, 0);
+        const length = this.args.reduce((sum, value) => sum + value.byteLength, 0);
         const data_view = new DataView(this.memory.buffer);
         data_view.setUint32(argc_ptr, this.args.length, true);
         data_view.setUint32(argv_buf_size_ptr, length, true);

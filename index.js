@@ -2,7 +2,9 @@
     const encoder = new TextEncoder();
 
     const args_array = [
-        "./wasitests/args.wasm"
+        "./wasitests/args.wasm",
+        "--sandwich",
+        "chicken"
     ];
 
     const module = await WebAssembly.compileStreaming(fetch(args_array[0]));
