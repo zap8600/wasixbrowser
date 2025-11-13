@@ -1,3 +1,15 @@
+class File {
+    path;
+    cursor;
+
+    constructor(path) {
+        this.path = path;
+        this.cursor = 0;
+    }
+}
+
+const filesystem = new Map();
+
 (async function () {
     const encoder = new TextEncoder();
 
