@@ -1,4 +1,4 @@
-class File {
+class FileData {
     path;
     cursor;
 
@@ -8,6 +8,10 @@ class File {
     }
 }
 
+// This map is basically like root /
+// Keys are strings representing an entry
+// If the type of the value of a key is a map, it's a directory
+// Else, it's a file and the type will be a Uint8Array
 const filesystem = new Map();
 
 (async function () {

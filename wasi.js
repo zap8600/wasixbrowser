@@ -256,8 +256,11 @@ export class WASI {
         throw new Error("path_link");
     }
 
-    path_open() {
-        throw new Error("path_open");
+    path_open(dirfd, dirflags, path, path_len, o_flags, fs_rights_base, fs_rights_inheriting, fs_flags, fd) {
+        // throw new Error("path_open");
+        if(path_len >= 512) {
+            return 28;
+        }
     }
 
     path_readlink() {
