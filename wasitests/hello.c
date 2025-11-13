@@ -18,7 +18,6 @@ void print_str(const char* s) {
 // }
 
 int main() {
-    char* msg = "Hello, world!\n";
-    print_str(msg);
+    print_str("Hello, world!");
     return 0;
 }

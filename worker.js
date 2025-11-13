@@ -1,7 +1,7 @@
 import { WASI } from "./wasi.js"
 
 onmessage = (e) => {
-    const wasi = new WASI(e.data[1], e.data[4]);
+    const wasi = new WASI(e.data[1], e.data[4], e.data[5]);
     WebAssembly.instantiate(e.data[0], {
         "wasi_snapshot_preview1": wasi,
         "wasi": {

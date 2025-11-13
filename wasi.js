@@ -5,10 +5,13 @@
 export class WASI {
     memory;
     args;
+    envs;
 
-    constructor(memory, args) {
+    constructor(memory, args, envs) {
         const encoder = new TextEncoder();
         this.memory = memory;
+        const env_strings = Object.entries(envs).map(([key, value]) => `${key}=${value}`);
+        this.envs = env_strings.map(s => encoder.encode(s + "\0"));
         this.args = args.map(s => encoder.encode(s + "\0"));
         this.bind();
     }
@@ -62,6 +65,7 @@ export class WASI {
     }
 
     args_get(argv_ptr, argv_buf_ptr) {
+        // postMessage(["args_get", 0, "log"]);
         const length = this.args.reduce((sum, value) => sum + value.byteLength, 0);
         const argv = new Uint32Array(this.memory.buffer, argv_ptr, this.args.length);
         const argv_buf = new Uint8Array(this.memory.buffer, argv_buf_ptr, length);
@@ -79,6 +83,7 @@ export class WASI {
 
     args_sizes_get(argc_ptr, argv_buf_size_ptr) {
         // throw new Error("args_sizes_get");
+        // postMessage(["args_sizes_get", 0, "log"]);
         const length = this.args.reduce((sum, value) => sum + value.byteLength, 0);
         const data_view = new DataView(this.memory.buffer);
         data_view.setUint32(argc_ptr, this.args.length, true);
@@ -86,12 +91,32 @@ export class WASI {
         return 0;
     }
 
-    environ_get(env, env_buf) {
-        throw new Error("environ_get");
+    environ_get(environ_ptr, environ_buf_ptr) {
+        // throw new Error("environ_get");
+        // postMessage(["environ_get", 0, "log"]);
+        const length = this.envs.map(s => s.byteLength).reduce((sum, value) => sum + value, 0);
+        const environ = new Uint32Array(this.memory.buffer, environ_ptr, this.envs.length);
+        const environ_buf = new Uint8Array(this.memory.buffer, environ_buf_ptr, length);
+
+        let offset = 0;
+        for(let i = 0; i < this.envs.length; i++) {
+            const current_ptr = environ_buf_ptr + offset;
+            environ[i] = current_ptr;
+            environ_buf.set(this.envs[i], offset);
+            offset += this.envs[i].byteLength;
+        }
+
+        return 0;
     }
 
-    environ_sizes_get(env_count, env_buf_size) {
-        throw new Error("environ_sizes_get");
+    environ_sizes_get(environ_count_ptr, environ_buf_size_ptr) {
+        // throw new Error("environ_sizes_get");
+        // ostMessage(["environ__sizes_get", 0, "log"]);
+        const length = this.envs.map(s => s.byteLength).reduce((sum, value) => sum + value, 0);
+        const data_view = new DataView(this.memory.buffer);
+        data_view.setUint32(environ_count_ptr, this.envs.length, true);
+        data_view.setUint32(environ_buf_size_ptr, length, true);
+        return 0;
     }
 
     clock_get_res(clock_id, resolution) {

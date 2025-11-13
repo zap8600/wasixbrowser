@@ -2,8 +2,13 @@
     const encoder = new TextEncoder();
 
     const args_array = [
-        "./wasitests/printf.wasm",
+        "./wasitests/env.wasm",
     ];
+
+    const envs = {
+        FOO: "limpbizkit",
+        BARS: "sandwich" // intentionally mispelled
+    };
 
     const module = await WebAssembly.compileStreaming(fetch(args_array[0]));
     const memory = new WebAssembly.Memory({ initial: 2, maximum: 1024, shared: true })
@@ -41,7 +46,7 @@
                     console.error(f.message);
                     throw f;
                 }
-                worker.postMessage([module, memory, e.data[0], e.data[1], args_array]);
+                worker.postMessage([module, memory, e.data[0], e.data[1], args_array, envs]);
                 workers.push(worker);
                 break;
             }
@@ -51,7 +56,7 @@
         console.error(d.message);
         throw d;
     }
-    main_worker.postMessage([module, memory, args_array]);
+    main_worker.postMessage([module, memory, args_array, envs]);
 
     // WebAssembly.instantiate(module, {
     //     "wasi_snapshot_preview1": wasi,
