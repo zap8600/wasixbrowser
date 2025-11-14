@@ -1,3 +1,7 @@
+const max_fds = 25;
+
+import { Mutex } from "./mutex.js";
+
 (async function () {
     const encoder = new TextEncoder();
 
@@ -6,6 +10,13 @@
         "--sandwich",
         "beans",
     ];
+
+    const open_fds_buf = new SharedArrayBuffer(3 * 4, {maxByteLength: max_fds * 4});
+    const open_fds = new Int32Array(open_fds_buf);
+    open_fds[0] = 0; // stdin
+    open_fds[1] = 1; // stdout
+    open_fds[2] = 2; // stderr
+    const fds_mutex = new Mutex();
 
     const envs = {
         FOO: "limpbizkit",
@@ -48,7 +59,7 @@
                     console.error(f.message);
                     throw f;
                 }
-                worker.postMessage([module, memory, e.data.id, e.data.args, args_array, envs]);
+                worker.postMessage([module, memory, e.data.id, e.data.args, args_array, envs, open_fds_buf, fds_mutex._sab]);
                 workers.push(worker);
                 break;
             }
@@ -58,7 +69,7 @@
         console.error(d.message);
         throw d;
     }
-    main_worker.postMessage([module, memory, args_array, envs]);
+    main_worker.postMessage([module, memory, args_array, envs, open_fds_buf, fds_mutex._sab]);
     // console.log(splitPath("/home/deck/deck-tailscale"));
 
     // WebAssembly.instantiate(module, {

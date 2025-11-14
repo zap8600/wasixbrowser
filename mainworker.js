@@ -3,7 +3,7 @@ import { WASI } from "./wasi.js";
 let thread_id = 5;
 
 onmessage = (e) => {
-    const wasi = new WASI(e.data[1], e.data[2], e.data[3]);
+    const wasi = new WASI(e.data[1], e.data[2], e.data[3], e.data[4], e.data[5], e.data[6], e.data[7]);
     WebAssembly.instantiate(e.data[0], {
         "wasi_snapshot_preview1": wasi,
         "wasi": {

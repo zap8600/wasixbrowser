@@ -2,17 +2,24 @@
 // https://dev.to/ndesmic/building-a-minimal-wasi-polyfill-for-browsers-4nel
 // https://web.dev/articles/asyncify
 
+import { Mutex } from "./mutex.js";
+import { find_first_missing_number } from "./util.js";
+
 export class WASI {
     memory;
     args;
     envs;
+    fdt_buf;
+    fds_mutex;
 
-    constructor(memory, args, envs) {
+    constructor(memory, args, envs, fdt_buf, mutex) {
         const encoder = new TextEncoder();
         this.memory = memory;
         const env_strings = Object.entries(envs).map(([key, value]) => `${key}=${value}`);
         this.envs = env_strings.map(s => encoder.encode(s + "\0"));
         this.args = args.map(s => encoder.encode(s + "\0"));
+        this.fdt_buf = fdt_buf;
+        this.fds_mutex = new Mutex(mutex);
         this.bind();
     }
 
@@ -138,8 +145,19 @@ export class WASI {
         throw new Error("fd_allocate");
     }
 
-    fd_close() {
-        throw new Error("fd_close");
+    fd_close(fd) {
+        // throw new Error("fd_close");
+        this.fds_mutex.lock();
+        const fdt = new Int32Array(this.fdt_buf);
+        const fd_index = fdt.indexOf(fd);
+        if(fd_index === -1) {
+            this.fds_mutex.unlock();
+            return 8;
+        } else {
+            fdt[fd_index] = -1;
+            this.fds_mutex.unlock();
+            return 0;
+        }
     }
 
     fd_datasync() {
@@ -262,7 +280,34 @@ export class WASI {
             return 28;
         }
 
-        postMessage([])
+        this.fds_mutex.lock();
+        let new_fd = find_first_missing_number(fdt);
+        let fdt = new Int32Array(this.fdt_buf);
+        const create = flags & 1;
+        if(!create) {
+            return 44; // 404
+        } else {
+            // TODO: Create a file in the filesystem
+
+            // Add fd
+            // this.fds_mutex.lock();
+
+            let free_fd_index = fdt.indexOf(-1);
+            if(free_fd_index === -1) {
+                this.fdt_buf.grow(this.fdt_buf.byteLength + 4);
+                free_fd_index = new Int32Array(this.fdt_buf, 4).indexOf(0) + 1; // new bytes are allocated to 0
+                fdt = new Int32Array(this.fdt_buf);
+            }
+            if(new_fd === -1) {
+                new_fd = Math.max(...fdt) + 1;
+            }
+            fdt[free_fd_index] = new_fd;
+        }
+        // TODO: Connect new fd to file path
+        this.fds_mutex.unlock();
+        const data_view = new DataView(this.memory.buffer);
+        data_view.setUint32(fd, new_fd);
+        return 0;
     }
 
     path_readlink() {
