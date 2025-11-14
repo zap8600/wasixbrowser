@@ -9,7 +9,8 @@ onmessage = (e) => {
         "wasi": {
             "thread-spawn"(start_args) {
                 // throw new Error("thread-spawn");
-                postMessage([thread_id, start_args, "thread"]);
+                // postMessage([thread_id, start_args, "thread"]);
+                postMessage({method: "thread", id: thread_id, args: start_args});
                 const return_value = thread_id;
                 thread_id++;
                 return return_value;

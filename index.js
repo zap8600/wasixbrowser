@@ -2,7 +2,7 @@
     const encoder = new TextEncoder();
 
     const args_array = [
-        "./wasitests/printf.wasm",
+        "./wasitests/thread.wasm",
         "--sandwich",
         "beans",
     ];
@@ -21,25 +21,25 @@
         // const worker = new Worker("./worker.js", { type: "module" });
         // worker.postMessage([module, memory, e.data[0], e.data[1]]);
         // workers.push(worker);
-        switch(e.data[2]) {
+        switch(e.data.method) {
             case "log": {
-                console.log(e.data[0]);
+                console.log(e.data.message);
                 break;
             }
             case "error": {
-                console.error(e.data[0]);
+                console.error(e.data.message);
                 break;
             }
             case "thread": {
                 const worker = new Worker("./worker.js", { type: "module" });
                 worker.onmessage = (d) => {
-                    switch(d.data[2]) {
+                    switch(d.data.method) {
                         case "log": {
-                            console.log(d.data[0]);
+                            console.log(d.data.message);
                             break;
                         }
                         case "error": {
-                            console.error(d.data[0]);
+                            console.error(d.data.message);
                             break;
                         }
                     }
@@ -48,7 +48,7 @@
                     console.error(f.message);
                     throw f;
                 }
-                worker.postMessage([module, memory, e.data[0], e.data[1], args_array, envs]);
+                worker.postMessage([module, memory, e.data.id, e.data.args, args_array, envs]);
                 workers.push(worker);
                 break;
             }

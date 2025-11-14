@@ -231,10 +231,10 @@ export class WASI {
             data_view.setInt32(nwritten, total, true);
             if(fd === 1) {
                 // console.log(text);
-                postMessage([text, 0, "log"]);
+                postMessage({method: "log", message: text});
             } else {
                 // console.error(text);
-                postMessage([text, 0, "error"]);
+                postMessage({method: "error", message: text});
             }
             return 0;
         }
@@ -261,6 +261,8 @@ export class WASI {
         if(path_len >= 512) {
             return 28;
         }
+
+        postMessage([])
     }
 
     path_readlink() {
@@ -290,10 +292,10 @@ export class WASI {
     proc_exit(code) {
         if(code === 0) {
             // console.log("Process exited with error code " + code + "!");
-            postMessage(["Process exited with error code " + code + "!", 0, "log"]);
+            postMessage({method: "log", message: "Process exited with error code " + code + "!"});
         } else {
             // console.error("Process exited with error code " + code + "!");
-            postMessage(["Process exited with error code " + code + "!", 0, "error"]);
+            postMessage({method: "log", message: "Process exited with error code " + code + "!"});
         }
     }
 

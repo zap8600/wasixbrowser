@@ -61,8 +61,8 @@ int main() {
         print_err("failed to create thread 2!\n");
         return create_return;
     }
-    pthread_join(the_thread, NULL);
-    pthread_join(the_thread_again, NULL);
+    // pthread_join(the_thread, NULL);
+    // pthread_join(the_thread_again, NULL);
     // pid_t pid = fork();
     // if(pid) {
     //     print_err("failed to create child!\n");
