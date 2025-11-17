@@ -164,8 +164,19 @@ export class WASI {
         throw new Error("fd_datasync");
     }
 
-    fd_fdstat_get() {
-        throw new Error("fd_fdstat_get");
+    fd_fdstat_get(fd, buf_ptr) {
+        // throw new Error("fd_fdstat_get");
+        // TODO: Make proper implementation
+        const data_view = new DataView(this.memory.buffer);
+        if(fd < 5) {
+            data_view.setUint8(buf_ptr, 3);
+        } else {
+            data_view.setUint8(buf_ptr, 4);
+        }
+        data_view.setUint16(buf_ptr + 2, 0, true);
+        data_view.setBigUint64(buf_ptr + 8, BigInt(-1), true);
+        data_view.setBigUint64(buf_ptr + 16, BigInt(-1), true);
+        return 0;
     }
 
     fd_fdstat_set_flags() {
@@ -196,7 +207,6 @@ export class WASI {
     fd_prestat_get(fd, buf_ptr) {
         // throw new Error("fd_prestat_get");
         if(fd < 3 || fd >= 5) {
-            postMessage({method: "error", message: "get: no fd: " + fd});
             return 8;
         }
 
@@ -212,7 +222,6 @@ export class WASI {
     fd_prestat_dir_name(fd, path_ptr, path_len) {
         // throw new Error("fd_prestat_dir_name");
         if(fd < 3 || fd >= 5) {
-            postMessage({method: "error", message: "dir_name: no fd: " + fd});
             return 8;
         }
 
@@ -223,7 +232,7 @@ export class WASI {
             case 3: text_buffer = encoder.encode("/\0"); break;
             case 4: text_buffer = encoder.encode("./\0"); break;
         }
-        postMessage({method: "log", message: text_buffer});
+        // postMessage({method: "log", message: text_buffer});
         for(let i = 0; i < text_buffer.byteLength; i++) {
             data_view.setUint8(path_ptr + i, text_buffer[i]);
         }
@@ -305,17 +314,14 @@ export class WASI {
 
     path_open(dirfd, dirflags, path, path_len, o_flags, fs_rights_base, fs_rights_inheriting, fs_flags, fd) {
         // throw new Error("path_open");
-        postMessage({method: "log", message: "made it!"});
         if(path_len >= 512) {
             return 28;
         }
 
-        postMessage({method: "log", message: "made it!"});
-
         this.fds_mutex.lock();
-        let new_fd = find_first_missing_number(fdt);
         let fdt = new Int32Array(this.fdt_buf);
-        const create = flags & 1;
+        let new_fd = find_first_missing_number(fdt);
+        const create = o_flags & 1;
         if(!create) {
             return 44; // 404
         } else {
@@ -336,9 +342,10 @@ export class WASI {
             fdt[free_fd_index] = new_fd;
         }
         // TODO: Connect new fd to file path
+        // postMessage({method: "log", message: fdt})
         this.fds_mutex.unlock();
         const data_view = new DataView(this.memory.buffer);
-        data_view.setUint32(fd, new_fd);
+        data_view.setUint32(fd, new_fd, true);
         return 0;
     }
 
