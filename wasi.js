@@ -193,12 +193,35 @@ export class WASI {
         throw new Error("fd_pread");
     }
 
-    fd_prestat_get() {
-        throw new Error("fd_prestat_get");
+    fd_prestat_get(fd, buf_ptr) {
+        // throw new Error("fd_prestat_get");
+        if(fd !== 3 || fd !== 4) {
+            postMessage({method: "error", message: "dir_name: no fd: " + fd});
+            return 8;
+        }
+
+        const data_view = new DataView(this.memory.buffer);
+        data_view.setUint32(buf_ptr, 0, true);
+        switch(fd) {
+            case 3: data_view.setUint32(buf_ptr + 4, "/".length + 1, true); break;
+            case 4: data_view.setUint32(buf_ptr + 4, "./".length + 1, true); break;
+        }
+        return 0;
     }
 
-    fd_prestat_dir_name() {
-        throw new Error("fd_prestat_dir_name");
+    fd_prestat_dir_name(fd, path_ptr, path_len) {
+        // throw new Error("fd_prestat_dir_name");
+        if(fd !== 3 || fd !== 4) {
+            postMessage({method: "error", message: "dir_name: no fd: " + fd});
+            return 8;
+        }
+
+        const encoder = new TextEncoder();
+        switch(fd) {
+            case 3: new Uint8Array(this.memory.buffer, path_ptr).set(encoder.encode("/\0")); break;
+            case 4: new Uint8Array(this.memory.buffer, path_ptr).set(encoder.encode("./\0")); break;
+        }
+        return 0;
     }
 
     fd_pwrite() {

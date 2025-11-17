@@ -2,15 +2,15 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <string.h>
+#include <errno.h>
 
 int main() {
-    char* test_msg = "Hello, world!\n";
-    write(STDOUT_FILENO, test_msg, strlen(test_msg));
     setbuf(stdout, NULL);
     setbuf(stderr, NULL);
-    int fd = open("beans.txt", (O_CREAT | O_RDWR | O_TRUNC), 0777);
+    printf("Opening!\n");
+    int fd = open("./beans.txt", (O_CREAT | O_RDWR | O_TRUNC), 0777);
     if(fd == -1) {
-        perror("beans.txt");
+        fprintf(stderr, "./beans.txt: %s\n", strerror(errno));
         return 1;
     }
     printf("FD: %d\n", fd);
