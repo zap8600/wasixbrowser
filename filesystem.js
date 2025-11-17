@@ -39,4 +39,23 @@ export class Filesystem {
 
         return array;
     }
+
+    // Ancient ass code I once wrote for a private project.
+    // Return true if the file exists, false if not
+    findfile(filepatharray) {
+        let currdir = filesystem;
+        for(let i = 0; i < filepatharray.length; i++) {
+            if(!(currdir.has(filepatharray[i]))) {
+                return false;
+            }
+
+            let valueofai = currdir.get(filepatharray[i]);
+
+            if(!(valueofai instanceof Map)) {
+                return true;
+            }
+
+            currdir = valueofai;
+        }
+    }
 }

@@ -322,24 +322,27 @@ export class WASI {
         let fdt = new Int32Array(this.fdt_buf);
         let new_fd = find_first_missing_number(fdt);
         const create = o_flags & 1;
-        if(!create) {
-            return 44; // 404
+        if(0) { // find file
         } else {
-            // TODO: Create a file in the filesystem
+            if(!create) {
+                return 44; // 404
+            } else {
+                // TODO: Create a file in the filesystem
 
-            // Add fd
-            // this.fds_mutex.lock();
+                // Add fd
+                // this.fds_mutex.lock();
 
-            let free_fd_index = fdt.indexOf(-1);
-            if(free_fd_index === -1) {
-                this.fdt_buf.grow(this.fdt_buf.byteLength + 4);
-                free_fd_index = new Int32Array(this.fdt_buf, 4).indexOf(0) + 1; // new bytes are allocated to 0
-                fdt = new Int32Array(this.fdt_buf);
+                let free_fd_index = fdt.indexOf(-1);
+                if(free_fd_index === -1) {
+                    this.fdt_buf.grow(this.fdt_buf.byteLength + 4);
+                    free_fd_index = new Int32Array(this.fdt_buf, 4).indexOf(0) + 1; // new bytes are allocated to 0
+                    fdt = new Int32Array(this.fdt_buf);
+                }
+                if(new_fd === -1) {
+                    new_fd = Math.max(...fdt) + 1;
+                }
+                fdt[free_fd_index] = new_fd;
             }
-            if(new_fd === -1) {
-                new_fd = Math.max(...fdt) + 1;
-            }
-            fdt[free_fd_index] = new_fd;
         }
         // TODO: Connect new fd to file path
         // postMessage({method: "log", message: fdt})
