@@ -195,8 +195,8 @@ export class WASI {
 
     fd_prestat_get(fd, buf_ptr) {
         // throw new Error("fd_prestat_get");
-        if(fd !== 3 || fd !== 4) {
-            postMessage({method: "error", message: "dir_name: no fd: " + fd});
+        if(fd < 3 || fd >= 5) {
+            postMessage({method: "error", message: "get: no fd: " + fd});
             return 8;
         }
 
@@ -211,15 +211,21 @@ export class WASI {
 
     fd_prestat_dir_name(fd, path_ptr, path_len) {
         // throw new Error("fd_prestat_dir_name");
-        if(fd !== 3 || fd !== 4) {
+        if(fd < 3 || fd >= 5) {
             postMessage({method: "error", message: "dir_name: no fd: " + fd});
             return 8;
         }
 
+        const data_view = new DataView(this.memory.buffer);
         const encoder = new TextEncoder();
+        let text_buffer;
         switch(fd) {
-            case 3: new Uint8Array(this.memory.buffer, path_ptr).set(encoder.encode("/\0")); break;
-            case 4: new Uint8Array(this.memory.buffer, path_ptr).set(encoder.encode("./\0")); break;
+            case 3: text_buffer = encoder.encode("/\0"); break;
+            case 4: text_buffer = encoder.encode("./\0"); break;
+        }
+        postMessage({method: "log", message: text_buffer});
+        for(let i = 0; i < text_buffer.byteLength; i++) {
+            data_view.setUint8(path_ptr + i, text_buffer[i]);
         }
         return 0;
     }
@@ -299,9 +305,12 @@ export class WASI {
 
     path_open(dirfd, dirflags, path, path_len, o_flags, fs_rights_base, fs_rights_inheriting, fs_flags, fd) {
         // throw new Error("path_open");
+        postMessage({method: "log", message: "made it!"});
         if(path_len >= 512) {
             return 28;
         }
+
+        postMessage({method: "log", message: "made it!"});
 
         this.fds_mutex.lock();
         let new_fd = find_first_missing_number(fdt);
